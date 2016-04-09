@@ -1,0 +1,340 @@
+require(ggplot2)
+# diamondsdataset consists of prices and quality information
+# about 54,000 diamonds, and is included in the ggplot2package.
+head(diamonds)
+min(diamonds$carat)
+max(diamonds$carat)
+summary(diamonds$carat)
+summary(diamonds)
+
+hist(diamonds$carat, main = "Carat Histogram", xlab = "Carat")
+qplot(carat, data = diamonds, geom = "histogram")
+
+plot(price~carat, data = diamonds)
+plot(diamonds$carat, diamonds$price)
+qplot(carat, price, data = diamonds)
+# log relation
+qplot(log(carat), log(price), data = diamonds)
+# weight proportional to volumne
+qplot(carat, x*y*z, data = diamonds)
+# scatter color
+qplot(carat, price, data = dsmall, colour = color)
+# shapes
+qplot(carat, price, data = dsmall, shape = cut)
+# shape and color 
+qplot(carat, price, data = dsmall, shape = cut, colour = color)
+# size
+qplot(carat, price, data = dsmall,  colour = color, size=depth)
+# alpha overplotting
+qplot(carat, price, data = diamonds, alpha = I(1/10))
+# smooth trend
+qplot(carat, price, data = diamonds, geom = c("point", "smooth"))
+# windows regression
+qplot(carat, price, data = dsmall, geom = c("point", "smooth"), span = 0.2)
+# jitter
+qplot(color, price / carat, data = diamonds, geom = "jitter", alpha = I(1 / 25))
+# boxplot
+qplot(color, price / carat, data = diamonds, geom = "boxplot")
+# histogram
+qplot(carat, data = diamonds, geom = "histogram")
+qplot(carat, data = diamonds, geom = "histogram", binwidth = 1, xlim = c(0,3))
+qplot(carat, data = diamonds, geom = "histogram", binwidth = 0.1, xlim = c(0,3))
+# density
+qplot(carat, data = diamonds, geom = "density")
+# density color split
+qplot(carat, data = diamonds, geom = "density", colour = color)
+# hist fill colors
+qplot(carat, data = diamonds, geom = "histogram", fill = color)
+# bar chart
+qplot(color, data = diamonds, geom = "bar")
+# weighted addition
+qplot(color, data = diamonds, geom = "bar", weight = carat) +
+  scale_y_continuous("carat")
+# without geom default
+qplot(color, data = diamonds)
+qplot(color, data = diamonds, fill = cut)
+
+
+# Faceting
+
+qplot(carat, data = diamonds, geom = "histogram", binwidth = 0.1,
+      xlim = c(0, 3)) + facet_grid(color ~ .)
+# title
+qplot(carat, ..density.., data = diamonds, geom = "histogram",
+      binwidth = 0.1, xlim = c(0, 3)) + facet_grid(color ~ .)
+
+# labels
+qplot(
+  carat, price, data = dsmall,
+  xlab = "Price ($)", ylab = "Weight (carats)",
+  main = "Price-weight relationship"
+)
+
+# smart label
+qplot(
+  carat, price/carat, data = dsmall,
+  ylab = expression(frac(price,carat)),
+  xlab = "Weight (carats)",
+  main="Small diamonds",
+  xlim = c(.2,1)
+)
+
+# layers
+
+p = ggplot(diamonds, aes(x = carat))
+p = p + layer(
+  geom = "bar",
+  geom_params = list(fill = "steelblue"),
+  stat = "bin",
+  stat_params = list(binwidth = 2)
+)
+p
+
+# ggplot alternatvies
+ggplot(data = diamonds) + geom_histogram(aes(x = carat))
+ggplot(data = diamonds) + geom_density(aes(x = carat), fill = "grey50")
+
+ggplot(diamonds, aes(x = carat, y = price)) + geom_point()
+g = ggplot(diamonds, aes(x = carat, y = price))
+g + geom_point(aes(color = color))
+
+# facet_wrap takes the levels of one variable, cuts up the underlying data according
+# to them, makes a separate pane for each set, and arranges them to fit in the plot 
+g + geom_point(aes(color = color)) + facet_wrap(~color)
+# facet_grid acts similarly  but  assigns all levels of a variable to 
+# either a row or column
+g + geom_point(aes(color = color)) + facet_grid(cut~clarity)
+# Faceting also works with  histograms or any  other geom
+ggplot(diamonds, aes(x = carat)) + geom_histogram() + facet_wrap(~color)
+# boxplot through geom
+ggplot(diamonds, aes(y = carat, x = 1)) + geom_boxplot()
+# multiple boxplots
+ggplot(diamonds, aes(y = carat, x = cut)) + geom_boxplot()
+# Also try violin
+ggplot(diamonds, aes(y = carat, x = cut)) + geom_violin()
+# geom layers
+ggplot(diamonds, aes(y = carat, x = cut)) + geom_point() + geom_violin()
+# also
+ggplot(diamonds, aes(y = carat, x = cut)) + geom_violin() + geom_point()
+
+# Three position adjustments applied to a bar chart.  From left to
+# right, stacking, filling and dodging.
+dplot <- ggplot(diamonds, aes(clarity, fill = cut))
+dplot + geom_bar(position = "stack")
+dplot + geom_bar(position = "fill")
+dplot + geom_bar(position = "dodge")
+
+# Two variations on the histogram. (Left) A frequency polygon;
+# (middle) a scatterplot with both size and height mapped to frequency;
+# (right) a heatmap representing frequency with colour.
+d <- ggplot(diamonds, aes(carat)) + xlim(0, 3)
+d + stat_bin(aes(ymax = ..count..), binwidth = 0.1, geom = "area")
+d + stat_bin(aes(size = ..density..), binwidth = 0.1, geom = "point", position="identity")
+
+
+# Three views of the distribution of depth and cut.  From top to
+# bottom: faceted histogram, a conditional density plot, and frequency
+# polygons.  All show an interesting pattern: as quality increases, the
+# distribution shifts to the left and becomes more symmetric.
+depth_dist <- ggplot(diamonds, aes(depth)) + xlim(58, 68)
+depth_dist + 
+  geom_histogram(aes(y = ..density..), binwidth = 0.1) +
+  facet_grid(cut ~ .)
+depth_dist + geom_histogram(aes(fill = cut), binwidth = 0.1, 
+                            position = "fill")
+depth_dist + geom_freqpoly(aes(y = ..density.., colour = cut), 
+                           binwidth = 0.1) 
+
+# Binning with, top row, square bins, and bottom row, hexagonal bins.
+# Left column uses default parameters, middle column {\tt bins = 10},
+# and right column {\tt binwidth = c(0.02, 200)}.  Legends have been
+# omitted to save space.
+d <- ggplot(diamonds, aes(carat, price)) + xlim(1,3)
+d + stat_bin2d()
+d + stat_bin2d(bins = 10) # width height into 10 parts
+d + stat_bin2d(binwidth=c(0.02, 200)) # x, y
+d + stat_binhex()
+d + stat_binhex(bins = 10)
+d + stat_binhex(binwidth=c(0.02, 200))
+
+# Using density estimation to model and visualise point densities.
+# (Top) Image displays of the density; (bottom) point and contour based
+# displays.
+d <- ggplot(diamonds, aes(carat, price)) + xlim(1,3)
+d + geom_point() + geom_density2d()
+d + stat_density2d(geom = "point", aes(size = ..density..), 
+                   contour = F)
+d + stat_density2d(geom = "tile", aes(fill = ..density..), 
+                   contour = F) 
+last_plot() + scale_fill_gradient(limits = c(1e-5,8e-4))
+
+
+#======================
+# economics dataset
+head(economics)
+# line plot
+qplot(date, unemploy / pop, data = economics, geom = "line")
+qplot(date, uempmed, data = economics, geom = "line")
+
+qplot(unemploy / pop, uempmed, data = economics,geom = c("point", "path"))
+data = economics
+data$year = as.numeric(substr(data$date,0,4))
+qplot(unemploy / pop, uempmed, data = data, geom = "path", color = year)
+# color = factor(year)
+
+
+# ==========================================
+# fuel economy dataset
+# It records make, model, class, engine size, transmission 
+# and fuel economy for a selection of US cars in 1999 and 2008
+head(mpg)
+summary(mpg)
+qplot(displ, hwy, data = mpg, colour = factor(cyl))
+
+qplot(displ, hwy, data=mpg, colour=factor(cyl)) + 
+  geom_smooth(data= subset(mpg, cyl != 5), method="lm")
+
+qplot(displ, hwy, data=mpg, facets = . ~ year) + geom_smooth()
+
+# ======================================
+head(msleep)
+
+ggplot(msleep, aes(sleep_rem / sleep_total, awake)) +
+  geom_point()
+# which is equivalent to
+qplot(sleep_rem / sleep_total, awake, data = msleep)
+
+# You can add layers to qplot too:
+qplot(sleep_rem / sleep_total, awake, data = msleep) +
+  geom_smooth()
+# This is equivalent to
+qplot(sleep_rem / sleep_total, awake, data = msleep,
+      geom = c("point", "smooth"))
+#or
+ggplot(msleep, aes(sleep_rem / sleep_total, awake)) +
+  geom_point() + geom_smooth()
+
+# store geoms as variables
+bestfit <- geom_smooth(method = "lm", se = F,
+                       colour = "steelblue", size = 2)
+qplot(sleep_rem, sleep_total, data = msleep) + bestfit
+qplot(awake, brainwt, data = msleep, log = "y") + bestfit
+qplot(bodywt, brainwt, data = msleep, log = "xy") + bestfit
+
+
+#======================================
+
+# 
+p = ggplot(Oxboys, aes(age, height, group = Subject)) + 
+  geom_line()
+p + geom_smooth(aes(group = Subject), method="lm", se = F)
+# above gives smooth for every line ; below for oeverall
+p + geom_smooth(aes(group = 1), method="lm", size = 2, se = F)
+
+
+#=========================================
+
+df <- data.frame(
+  x = c(3, 1, 5), 
+  y = c(2, 4, 6), 
+  label = c("a","b","c")
+)
+p <- ggplot(df, aes(x, y, label = label)) + 
+  xlab(NULL) + ylab(NULL)
+p + geom_point() + labs(title = "geom_point")
+p + geom_bar(stat="identity") + labs(title = "geom_bar(stat=\"identity\")")
+p + geom_line() + labs(title = "geom_line")
+p + geom_area() + labs(title = "geom_area")
+p + geom_path() + labs(title = "geom_path")
+p + geom_text() + labs(title = "geom_text")
+p + geom_tile() + labs(title = "geom_tile")
+p + geom_polygon() + labs(title = "geom_polygon")
+
+
+# ========================================
+library(scales)
+# unemployment - presidents
+unemp <- qplot(date, unemploy, data=economics, geom="line", 
+               xlab = "", ylab = "No. unemployed (1000s)")
+
+presidential <- presidential[-(1:3), ]
+
+yrng <- range(economics$unemploy)
+xrng <- range(economics$date)
+unemp + geom_vline(aes(xintercept = as.numeric(start)), data = presidential)
+unemp + geom_rect(aes(NULL, NULL, xmin = start, xmax = end, 
+                      fill = party), ymin = yrng[1], ymax = yrng[2], 
+                  data = presidential) + scale_fill_manual(values = 
+                                                             alpha(c("blue", "red"), 0.2))
+last_plot() + geom_text(aes(x = start, y = yrng[1], label = name), 
+                        data = presidential, size = 3, hjust = 0, vjust = 0)
+caption <- paste(strwrap("Unemployment rates in the US have 
+                         varied a lot over the years", 40), collapse="\n")
+unemp + geom_text(aes(x, y, label = caption), 
+                  data = data.frame(x = xrng[2], y = yrng[2]), 
+                  hjust = 1, vjust = 1, size = 4)
+
+highest <- subset(economics, unemploy == max(unemploy))
+unemp + geom_point(data = highest, 
+                   size = 3, colour = alpha("red", 0.5))
+
+
+# =========================================
+# publishing
+
+# themes
+require(ggthemes)
+# build a plot and store it in g2
+g2 <- ggplot(diamonds, aes(x=carat, y=price)) + geom_point(aes(color=color))
+# apply a few themes
+g2 + theme_economist() + scale_colour_economist()
+g2 + theme_excel() + scale_colour_excel()
+g2 + theme_tufte()
+g2 + theme_wsj()
+
+hgram <- qplot(carat, data = diamonds, binwidth = 0.25)
+hgram
+previous_theme <- theme_set(theme_bw())
+hgram
+
+qplot(carat, data = diamonds, binwidth = 0.25) + theme_bw()
+
+hgramt <- hgram + labs(title = "This is a histogram")
+hgramt + theme(plot.title = element_text(size = 20))
+hgramt + theme(plot.title = element_text(size=20, colour="red"))
+
+# Saving your output
+ggsave(file = "output.pdf")
+
+# grids and overlaps
+a=qplot(date, unemploy, data = economics, geom = "line")
+b=qplot(uempmed, unemploy, data = economics) + geom_smooth(se = F)
+c=qplot(uempmed, unemploy, data = economics, geom="path")
+# overlap
+pdf("overlap.pdf", width = 4, height = 4)
+subvp <- viewport(width = 0.4, height = 0.4, x = 0.75, y = 0.35)
+b
+print(c, vp = subvp)
+dev.off()
+# grid
+pdf("grid.pdf", width = 8, height = 6)
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(2, 2)))
+vplayout <- function(x, y)
+  viewport(layout.pos.row = x, layout.pos.col = y)
+print(a, vp = vplayout(1, 1:2))
+print(b, vp = vplayout(2, 1))
+print(c, vp = vplayout(2, 2))
+dev.off()
+
+#========================
+#comparing syntaxes
+plot(price~carat, data = diamonds)
+plot(diamonds$carat, diamonds$price)
+qplot(carat, price, data = diamonds)
+qplot(diamonds$carat, diamonds$price, data = diamonds)
+ggplot(data=diamonds, aes(carat, price)) + geom_point()
+
+qplot(carat, price, data=diamonds, shape=cut, colour=color)
+ggplot(data=diamonds, aes(carat, price, shape=cut, colour=color)) +
+  geom_point()
