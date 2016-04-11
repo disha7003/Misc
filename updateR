@@ -1,0 +1,3 @@
+remove.packages("installr") # install 
+setInternet2(TRUE)
+installr::updateR() # updating R.
