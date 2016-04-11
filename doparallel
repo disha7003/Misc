@@ -1,0 +1,7 @@
+library('doParallel')
+cl <- makeCluster(4) #number of cores
+registerDoParallel(cl) 
+
+#do some work
+
+stopCluster(cl) #in the end
