@@ -1,0 +1,73 @@
+#https://www.youtube.com/watch?v=lTMqXSSjCvk
+
+install.packages("neuralnet")
+library(neuralnet)
+?infert
+data(infert)
+dim(infert)
+?neuralnet
+
+set.seed(2345)
+
+nn=neuralnet(case~age+parity+induced+spontaneous,data=infert,
+             hidden = 2, err.fct="ce",linear.output=FALSE)
+
+
+nn
+plot(nn)
+
+# 4 inputs, 2 hidden layer, 1 output... 
+#1 is intercept, just constant, present in all layers
+# if dont have constant, the output is close to avg
+
+nn$net.result #overall result , output for each replication
+nn$weights
+nn$result.matrix
+nn$covariate #input vector
+infert$case
+
+nn$net.result[[1]]
+nn1=ifelse(nn$net.result[[1]]>0.5,1,0)
+nn1
+
+(misClasificationError = mean(infert$case != nn1))
+
+(OutputVsPred = cbind(infert$case,nn1))
+
+#using backpropagation algorithm and playing with learningrate and entropy
+nn.bp=neuralnet(case~age+parity+induced+spontaneous,data=infert,
+             hidden = 2, 
+             learningrate = 0.01,
+             algorithm = "backprop",
+             err.fct="ce",linear.output=FALSE)
+
+nn.bp
+plot(nn.bp)
+
+#prediction
+
+new.output= compute(nn, covariate = matrix(c(22,1,0,0,
+                                                22,1,1,0,
+                                                22,1,0,1,
+                                                22,1,1,1),
+                                              byrow=TRUE,ncol=4))
+
+
+new.output$net.result
+
+#confidence intervals
+ci=confidence.interval(nn,alpha=0.05)
+ci
+
+#visualise results
+
+par(mfrow=c(2,2))
+
+gwplot(nn,selected.covariate = "age",
+       min=-2.5,max=5)
+gwplot(nn,selected.covariate = "parity",
+       min=-2.5,max=5)
+gwplot(nn,selected.covariate = "induced",
+       min=-2.5,max=5)
+gwplot(nn,selected.covariate = "spontaneous",
+       min=-2.5,max=5)
